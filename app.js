@@ -5,6 +5,7 @@ const state = {
 
 const ui = {
   fileInput: document.getElementById('csvFile'),
+  loadSampleButton: document.getElementById('loadSample'),
   uploadStatus: document.getElementById('uploadStatus'),
   processingStatus: document.getElementById('processingStatus'),
   questionInput: document.getElementById('question'),
@@ -17,6 +18,7 @@ function init() {
   });
 
   ui.fileInput.addEventListener('change', handleFileUpload);
+  ui.loadSampleButton.addEventListener('click', loadSampleCatalog);
   document.getElementById('askButton').addEventListener('click', submitQuestion);
   ui.questionInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -95,6 +97,33 @@ function updateStatus(message, type) {
   ui.processingStatus.className = `status ${type === 'success' ? 'status-success' : type === 'error' ? 'status-error' : 'status-neutral'}`;
 }
 
+function loadSampleCatalog() {
+  updateStatus('Loading sample catalog…', 'neutral');
+
+  fetch('sample-data.csv')
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then((text) => {
+      const parsed = parseCatalogCSV(text);
+      if (!parsed.length) {
+        updateStatus('Sample CSV could not be parsed. Please upload a CSV with a title column and at least one data row.', 'error');
+        return;
+      }
+
+      state.libraryData = parsed;
+      state.fileName = 'sample-data.csv';
+      updateStatus(`✓ Loaded sample catalog. ${state.libraryData.length} records ready.`, 'success');
+      ui.response.innerHTML = '<h3>✅ Sample catalog loaded</h3><p>The sample CSV is ready. Ask a question about genres, regions, languages, or recent titles.</p>';
+    })
+    .catch(() => {
+      updateStatus('Unable to load the sample catalog. Please upload a CSV file instead.', 'error');
+    });
+}
+
 function generateAnswer(question, data) {
   const normalized = question.toLowerCase();
   const currentYear = new Date().getFullYear();
@@ -137,7 +166,7 @@ function generateAnswer(question, data) {
     ], distribution.map(([name, count]) => `${escapeHtml(name)} — ${count} titles`));
   }
 
-  if (normalized.includes('country') || normalized.includes('region') || normalized.includes('international')) {
+  if (normalized.includes('country') || normalized.includes('countries') || normalized.includes('region') || normalized.includes('regions') || normalized.includes('international')) {
     const countries = getTopValues(data, 'country', 5);
     return renderResponse('Top countries and regions', 'These geographies are most represented in the catalog.', [
       { label: 'Countries tracked', value: countries.length },

@@ -46,8 +46,11 @@
           <h2>Upload catalog data</h2>
           <label class="upload-dropzone" for="csvFile">Choose CSV file</label>
           <input type="file" id="csvFile" accept=".csv" />
-          <p class="helper-text">Use a CSV with columns such as title, genre, release year, language, country/region, and content type.</p>
-          <a class="sample-link" href="sample-data.csv" download>Download sample catalog</a>
+          <p class="helper-text">Use a CSV with columns such as title, genre, release year, language, country/region, and content type. You can also load the sample catalog immediately.</p>
+          <div class="sample-actions">
+            <button id="loadSample" type="button">Load sample CSV</button>
+            <a class="sample-link" href="sample-data.csv" download>Download sample catalog</a>
+          </div>
           <div class="status status-neutral" id="uploadStatus">Waiting for a CSV file.</div>
         </div>
 
